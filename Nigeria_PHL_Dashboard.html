@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nigeria Post-Harvest Intelligence Dashboard — Iroagba Valentine Chibueze</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest:    #1B4332;
+    --fern:      #2D6A4F;
+    --sage:      #40916C;
+    --mint:      #74C69D;
+    --dew:       #B7E4C7;
+    --cream:     #F8F5EF;
+    --sand:      #E9E4D9;
+    --terra:     #BC6C25;
+    --amber:     #DDA15E;
+    --rust:      #8B2500;
+    --gold:      #E9C46A;
+    --charcoal:  #1C1C1C;
+    --ash:       #4A4A4A;
+    --fog:       #9A9A9A;
+    --white:     #FFFFFF;
+    --danger:    #C1121F;
+    --warn:      #E07B39;
+    --safe:      #386641;
+    --card-shadow: 0 4px 24px rgba(27,67,50,0.10);
+    --radius: 16px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--charcoal);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--forest) 0%, var(--fern) 55%, var(--sage) 100%);
+    padding: 36px 48px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    background: rgba(116,198,157,0.18);
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 30%;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(233,196,106,0.10);
+  }
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .header-icon {
+    width: 58px; height: 58px;
+    background: var(--gold);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--white);
+    line-height: 1.15;
+  }
+  .header-sub {
+    font-size: 13px;
+    color: var(--dew);
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+  }
+  .header-byline {
+    text-align: right;
+  }
+  .byline-label {
+    font-size: 11px;
+    color: var(--mint);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .byline-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-top: 2px;
+  }
+  .byline-meta {
+    font-size: 11px;
+    color: var(--dew);
+    margin-top: 2px;
+  }
+  .header-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+  .tag {
+    background: rgba(255,255,255,0.12);
+    color: var(--dew);
+    border: 1px solid rgba(255,255,255,0.20);
+    border-radius: 100px;
+    padding: 4px 12px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── NAV TABS ── */
+  .nav-strip {
+    background: var(--forest);
+    padding: 0 48px;
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--fern);
+  }
+  .nav-tab {
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--mint);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+  }
+  .nav-tab:hover { color: var(--gold); }
+  .nav-tab.active {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+  }
+
+  /* ── MAIN ── */
+  .main {
+    padding: 32px 48px 48px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; animation: fadeIn 0.3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; } }
+
+  /* ── SECTION HEADING ── */
+  .section-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    margin-top: 8px;
+  }
+  .section-heading h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--forest);
+  }
+  .section-line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(to right, var(--mint), transparent);
+    border-radius: 2px;
+  }
+  .section-badge {
+    background: var(--dew);
+    color: var(--forest);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 100px;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .kpi-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 22px 22px 18px;
+    box-shadow: var(--card-shadow);
+    border-left: 5px solid var(--sage);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 32px rgba(27,67,50,0.15);
+  }
+  .kpi-card.danger { border-left-color: var(--danger); }
+  .kpi-card.warn   { border-left-color: var(--warn); }
+  .kpi-card.safe   { border-left-color: var(--safe); }
+  .kpi-card.gold   { border-left-color: var(--gold); }
+  .kpi-icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+  .kpi-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    color: var(--fog);
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .kpi-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+    font-weight: 900;
+    color: var(--forest);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .kpi-value.danger { color: var(--danger); }
+  .kpi-value.warn   { color: var(--warn); }
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--fog);
+  }
+  .kpi-status {
+    position: absolute;
+    top: 16px; right: 16px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 100px;
+    letter-spacing: 0.08em;
+  }
+  .status-critical { background: #FDECEA; color: var(--danger); }
+  .status-warn     { background: #FEF3E2; color: var(--warn); }
+  .status-good     { background: #EBF7EE; color: var(--safe); }
+
+  /* ── CHART CARDS ── */
+  .chart-grid {
+    display: grid;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .cols-1 { grid-template-columns: 1fr; }
+  .cols-2-1 { grid-template-columns: 2fr 1fr; }
+  .cols-1-2 { grid-template-columns: 1fr 2fr; }
+
+  .chart-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--card-shadow);
+  }
+  .chart-card.full { grid-column: 1 / -1; }
+  .chart-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--forest);
+    margin-bottom: 4px;
+  }
+  .chart-desc {
+    font-size: 12px;
+    color: var(--fog);
+    margin-bottom: 16px;
+  }
+  .chart-wrap {
+    position: relative;
+  }
+
+  /* ── INSIGHT CALLOUT ── */
+  .insight-box {
+    background: linear-gradient(135deg, var(--forest), var(--fern));
+    color: var(--white);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .insight-icon { font-size: 26px; flex-shrink: 0; }
+  .insight-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  .insight-text { font-size: 13px; line-height: 1.65; color: var(--dew); }
+
+  /* ── TABLE ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table th {
+    background: var(--forest);
+    color: var(--mint);
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .data-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--sand);
+    color: var(--ash);
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:nth-child(even) td { background: var(--cream); }
+  .data-table tr:hover td { background: var(--dew); transition: 0.15s; }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .badge-red    { background: #FDECEA; color: var(--danger); }
+  .badge-amber  { background: #FEF3E2; color: var(--warn); }
+  .badge-green  { background: #EBF7EE; color: var(--safe); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-item { margin-bottom: 14px; }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--ash);
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  .progress-bar-bg {
+    height: 8px;
+    background: var(--sand);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 100px;
+    transition: width 1s ease;
+  }
+
+  /* ── RECOMMENDATIONS PAGE ── */
+  .rec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .rec-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    box-shadow: var(--card-shadow);
+    border-top: 4px solid var(--sage);
+    position: relative;
+  }
+  .rec-card.urgent { border-top-color: var(--danger); }
+  .rec-card.high   { border-top-color: var(--warn); }
+  .rec-card.medium { border-top-color: var(--gold); }
+  .rec-card.long   { border-top-color: var(--sage); }
+  .rec-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 900;
+    color: var(--sand);
+    position: absolute;
+    top: 14px; right: 18px;
+    line-height: 1;
+  }
+  .rec-tier {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .tier-urgent { color: var(--danger); }
+  .tier-high   { color: var(--warn); }
+  .tier-medium { color: var(--amber); }
+  .tier-long   { color: var(--sage); }
+  .rec-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--forest);
+    margin-bottom: 8px;
+    padding-right: 30px;
+  }
+  .rec-body {
+    font-size: 12.5px;
+    color: var(--ash);
+    line-height: 1.65;
+  }
+  .rec-impact {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--fog);
+    border-top: 1px solid var(--sand);
+    padding-top: 8px;
+  }
+  .rec-impact strong { color: var(--forest); }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 14px 20px;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 24px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .filter-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .filter-select {
+    border: 1px solid var(--sand);
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--ash);
+    background: var(--cream);
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .filter-select:focus { border-color: var(--sage); }
+
+  /* ── STAT STRIPS ── */
+  .stat-strip {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .stat-pill {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 12px 18px;
+    box-shadow: var(--card-shadow);
+    display: flex;
+    flex-direction: column;
+    min-width: 140px;
+  }
+  .stat-pill-label { font-size: 10px; color: var(--fog); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .stat-pill-value { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--forest); }
+
+  /* ── HEATMAP ── */
+  .heatmap-wrap {
+    overflow-x: auto;
+  }
+  .heatmap-table {
+    border-collapse: collapse;
+    font-size: 12px;
+    min-width: 100%;
+  }
+  .heatmap-table th {
+    background: var(--forest);
+    color: var(--mint);
+    padding: 8px 14px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .heatmap-table td {
+    padding: 9px 14px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 13px;
+    border: 1px solid var(--sand);
+  }
+  .hm-row-label {
+    text-align: left !important;
+    font-weight: 600 !important;
+    color: var(--forest) !important;
+    background: var(--cream) !important;
+  }
+
+  /* ── GAUGE ── */
+  .gauge-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .gauge-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+    text-align: center;
+  }
+  .gauge-label { font-size: 12px; font-weight: 600; color: var(--ash); margin-bottom: 8px; }
+  .gauge-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 900;
+    margin: 4px 0;
+  }
+  .gauge-target { font-size: 11px; color: var(--fog); }
+
+  /* ── FOOTER ── */
+  .footer {
+    background: var(--forest);
+    color: var(--mint);
+    text-align: center;
+    padding: 18px 48px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+  .footer strong { color: var(--gold); }
+
+  @media (max-width: 900px) {
+    .main { padding: 20px 16px 40px; }
+    .header { padding: 24px 20px; }
+    .nav-strip { padding: 0 16px; overflow-x: auto; }
+    .cols-2, .cols-3, .cols-2-1, .cols-1-2 { grid-template-columns: 1fr; }
+    .rec-grid { grid-template-columns: 1fr; }
+    .gauge-grid { grid-template-columns: 1fr 1fr; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Print */
+  @media print {
+    .nav-strip, .filter-bar { display: none !important; }
+    .page { display: block !important; margin-bottom: 40px; }
+    body { background: white; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-top">
+    <div class="header-brand">
+      <div class="header-icon">🌾</div>
+      <div>
+        <div class="header-title">Nigeria Post-Harvest<br>Agricultural Intelligence</div>
+        <div class="header-sub">Operational Analytics Dashboard &nbsp;·&nbsp; 2023–2024 Dataset &nbsp;·&nbsp; 5,000 Farming Operations</div>
+      </div>
+    </div>
+    <div class="header-byline">
+      <div class="byline-label">Prepared by</div>
+      <div class="byline-name">IROAGBA VALENTINE CHIBUEZE</div>
+      <div class="byline-meta">Agricultural Data Intelligence · Nigeria</div>
+    </div>
+  </div>
+  <div class="header-tags">
+    <span class="tag">6 Geopolitical Zones</span>
+    <span class="tag">6 Crop Types</span>
+    <span class="tag">19.25% Avg PHL Rate</span>
+    <span class="tag">₦41.4M Revenue Loss</span>
+    <span class="tag">Post-Harvest Analytics</span>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="nav-strip">
+  <div class="nav-tab active" onclick="showPage('overview', this)">📊 Executive Overview</div>
+  <div class="nav-tab" onclick="showPage('spoilage', this)">🔍 Spoilage Analysis</div>
+  <div class="nav-tab" onclick="showPage('logistics', this)">🚛 Logistics & Storage</div>
+  <div class="nav-tab" onclick="showPage('interventions', this)">⚡ Interventions</div>
+  <div class="nav-tab" onclick="showPage('recommendations', this)">🎯 Recommendations</div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ═══════════ PAGE 1: OVERVIEW ═══════════ -->
+<div class="page active" id="page-overview">
+
+  <div class="insight-box">
+    <div class="insight-icon">🚨</div>
+    <div>
+      <div class="insight-title">Critical Intelligence Alert</div>
+      <div class="insight-text">Nigeria's post-harvest loss rate stands at <strong style="color:var(--gold)">19.25%</strong> — nearly double the FAO benchmark of 10%. Across 5,000 farming operations in 6 geopolitical zones, total revenue loss from spoilage amounts to <strong style="color:var(--gold)">₦41.4 million NGN</strong>. The North East zone carries the highest risk (19.57% PHL). Only 39.7% of farmers use any post-harvest technology, and just 28.9% have received formal training.</div>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card safe">
+      <div class="kpi-icon">🌾</div>
+      <div class="kpi-label">Total Harvest Volume</div>
+      <div class="kpi-value">1.0M</div>
+      <div class="kpi-sub">kg across all zones</div>
+      <span class="kpi-status status-good">BASELINE</span>
+    </div>
+    <div class="kpi-card danger">
+      <div class="kpi-icon">⚠️</div>
+      <div class="kpi-label">Total Spoilage</div>
+      <div class="kpi-value danger">193K</div>
+      <div class="kpi-sub">kg lost to post-harvest loss</div>
+      <span class="kpi-status status-critical">CRITICAL</span>
+    </div>
+    <div class="kpi-card danger">
+      <div class="kpi-icon">📉</div>
+      <div class="kpi-label">Avg PHL Rate</div>
+      <div class="kpi-value danger">19.25%</div>
+      <div class="kpi-sub">Benchmark: &lt;10%</div>
+      <span class="kpi-status status-critical">CRITICAL</span>
+    </div>
+    <div class="kpi-card danger">
+      <div class="kpi-icon">💸</div>
+      <div class="kpi-label">Total Revenue Loss</div>
+      <div class="kpi-value danger">₦41.4M</div>
+      <div class="kpi-sub">Total NGN lost to spoilage</div>
+      <span class="kpi-status status-critical">CRITICAL</span>
+    </div>
+    <div class="kpi-card warn">
+      <div class="kpi-icon">📱</div>
+      <div class="kpi-label">Tech Adoption</div>
+      <div class="kpi-value warn">39.7%</div>
+      <div class="kpi-sub">Target: &gt;70%</div>
+      <span class="kpi-status status-warn">WARNING</span>
+    </div>
+    <div class="kpi-card warn">
+      <div class="kpi-icon">🎓</div>
+      <div class="kpi-label">Training Coverage</div>
+      <div class="kpi-value warn">28.9%</div>
+      <div class="kpi-sub">Target: &gt;60%</div>
+      <span class="kpi-status status-critical">CRITICAL</span>
+    </div>
+    <div class="kpi-card warn">
+      <div class="kpi-icon">👥</div>
+      <div class="kpi-label">Youth Participation</div>
+      <div class="kpi-value warn">39.9%</div>
+      <div class="kpi-sub">Target: &gt;50%</div>
+      <span class="kpi-status status-warn">WARNING</span>
+    </div>
+    <div class="kpi-card gold">
+      <div class="kpi-icon">🧑‍🌾</div>
+      <div class="kpi-label">Farmers Analysed</div>
+      <div class="kpi-value">5,000</div>
+      <div class="kpi-sub">Across 6 geopolitical zones</div>
+      <span class="kpi-status status-good">FULL</span>
+    </div>
+  </div>
+
+  <div class="chart-grid cols-2">
+    <div class="chart-card">
+      <div class="chart-title">Regional PHL Rate Comparison</div>
+      <div class="chart-desc">Average post-harvest loss % by geopolitical zone — North East leads in risk</div>
+      <div class="chart-wrap"><canvas id="regionalPHL" height="240"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Revenue Loss by Crop Type</div>
+      <div class="chart-desc">Total NGN revenue lost by crop — Pepper dominates at ₦12.9M</div>
+      <div class="chart-wrap"><canvas id="cropRevLoss" height="240"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-grid cols-2">
+    <div class="chart-card">
+      <div class="chart-title">Harvest vs Spoilage by Region</div>
+      <div class="chart-desc">Volume comparison showing actual loss scale per zone</div>
+      <div class="chart-wrap"><canvas id="harvestSpoilage" height="240"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Crop PHL Rate Ranking</div>
+      <div class="chart-desc">Which crops suffer highest spoilage rates? Rice leads at 19.58%</div>
+      <div class="chart-wrap"><canvas id="cropPHL" height="240"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 2: SPOILAGE ═══════════ -->
+<div class="page" id="page-spoilage">
+
+  <div class="insight-box">
+    <div class="insight-icon">🔬</div>
+    <div>
+      <div class="insight-title">Root Cause Intelligence</div>
+      <div class="insight-text">Spoilage is driven by a convergence of factors: ambient temperatures averaging <strong style="color:var(--gold)">29.9°C</strong> (optimal: &lt;25°C), humidity averaging <strong style="color:var(--gold)">60.2%</strong> (optimal: &lt;55%), and storage durations of 10+ days. High-spoilage records show nearly 2°C higher temperatures and 6.5% higher humidity than low-spoilage records — a compounding environmental effect that accelerates microbial activity and produce degradation.</div>
+    </div>
+  </div>
+
+  <div class="section-heading">
+    <h2>Environmental Spoilage Drivers</h2>
+    <div class="section-line"></div>
+    <div class="section-badge">Root Cause</div>
+  </div>
+
+  <div class="chart-grid cols-2">
+    <div class="chart-card">
+      <div class="chart-title">Temperature vs Spoilage Quartile</div>
+      <div class="chart-desc">Higher ambient temps correlate directly with increased spoilage severity</div>
+      <div class="chart-wrap"><canvas id="tempSpoilage" height="240"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Humidity vs Spoilage Quartile</div>
+      <div class="chart-desc">Elevated humidity promotes mold growth — high-spoilage ops average 64.2%</div>
+      <div class="chart-wrap"><canvas id="humidSpoilage" height="240"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-heading">
+    <h2>Region × Crop PHL Heatmap</h2>
+    <div class="section-line"></div>
+    <div class="section-badge">Cross Analysis</div>
+  </div>
+
+  <div class="chart-card" style="margin-bottom:24px">
+    <div class="chart-title">Regional × Crop Post-Harvest Loss Heatmap (%)</div>
+    <div class="chart-desc">Darker cells indicate higher PHL risk — identify zone-crop combinations requiring priority intervention</div>
+    <div class="heatmap-wrap" id="heatmapContainer"></div>
+  </div>
+
+  <div class="chart-grid cols-2">
+    <div class="chart-card">
+      <div class="chart-title">Spoilage by Harvest Season</div>
+      <div class="chart-desc">Dry vs Rainy Season spoilage patterns</div>
+      <div class="chart-wrap"><canvas id="seasonChart" height="240"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Storage Duration vs Spoilage Exposure</div>
+      <div class="chart-desc">Avg storage days grouped by spoilage severity quartile</div>
+      <div class="chart-wrap"><canvas id="storageDuration" height="240"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 3: LOGISTICS ═══════════ -->
+<div class="page" id="page-logistics">
+
+  <div class="insight-box">
+    <div class="insight-icon">🚚</div>
+    <div>
+      <div class="insight-title">Logistics Intelligence</div>
+      <div class="insight-text">Transport mode is a significant spoilage differentiator. <strong style="color:var(--gold)">Truck transport delivers the lowest PHL (18.82%)</strong> and lowest revenue loss (₦7,917 avg), while Bicycle and Motorcycle modes carry the highest spoilage rates (19.45% and 19.39% respectively). Storage method analysis reveals a counterintuitive finding: Cold Storage is associated with the highest PHL (19.39%) — a signal of infrastructure quality failure, not conceptual failure.</div>
+    </div>
+  </div>
+
+  <div class="section-heading">
+    <h2>Transport & Storage Performance</h2>
+    <div class="section-line"></div>
+    <div class="section-badge">Logistics</div>
+  </div>
+
+  <div class="chart-grid cols-2">
+    <div class="chart-card">
+      <div class="chart-title">PHL Rate by Transport Mode</div>
+      <div class="chart-desc">Truck delivers lowest spoilage — motorcycle & bicycle highest risk</div>
+      <div class="chart-wrap"><canvas id="transportPHL" height="240"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Revenue Loss by Transport Mode</div>
+      <div class="chart-desc">Motorcycle users suffer highest average financial loss (₦8,711)</div>
+      <div class="chart-wrap"><canvas id="transportRevLoss" height="240"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-grid cols-2">
+    <div class="chart-card">
+      <div class="chart-title">PHL Rate by Storage Method</div>
+      <div class="chart-desc">Cold Storage underperforms despite premium — crates deliver best outcomes</div>
+      <div class="chart-wrap"><canvas id="storagePHL" height="240"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Market Access vs Avg PHL%</div>
+      <div class="chart-desc">Poor market access surprisingly shows lowest PHL — moderate access worst</div>
+      <div class="chart-wrap"><canvas id="marketPHL" height="240"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-heading">
+    <h2>Logistics Performance Summary</h2>
+    <div class="section-line"></div>
+    <div class="section-badge">Summary Table</div>
+  </div>
+
+  <div class="chart-card">
+    <table class="data-table" id="logisticsTable">
+      <thead>
+        <tr>
+          <th>Transport Type</th>
+          <th>Avg PHL %</th>
+          <th>Avg Revenue Loss (₦)</th>
+          <th>Avg Distance (km)</th>
+          <th>Performance</th>
+        </tr>
+      </thead>
+      <tbody id="logisticsTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 4: INTERVENTIONS ═══════════ -->
+<div class="page" id="page-interventions">
+
+  <div class="insight-box">
+    <div class="insight-icon">⚡</div>
+    <div>
+      <div class="insight-title">Intervention Impact Intelligence</div>
+      <div class="insight-text"><strong style="color:var(--gold)">Hermetic Bags are the single most impactful technology</strong>, reducing average PHL to 18.76% — 0.62 points below the dataset average. Mobile Apps reduce financial losses the most (₦7,940 avg). Training shows negligible PHL improvement (+0.07%) — suggesting quality and continuity issues. Youth-involved operations underperform marginally due to structural resource constraints, not operational incompetence.</div>
+    </div>
+  </div>
+
+  <div class="gauge-grid">
+    <div class="gauge-card">
+      <div class="gauge-label">Technology Adoption Rate</div>
+      <div class="gauge-val" style="color:var(--warn)">39.7%</div>
+      <div class="gauge-target">Target: 70% &nbsp;·&nbsp; Gap: 30.3%</div>
+      <div style="margin-top:10px">
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:39.7%;background:var(--warn)"></div></div>
+      </div>
+    </div>
+    <div class="gauge-card">
+      <div class="gauge-label">Training Coverage Rate</div>
+      <div class="gauge-val" style="color:var(--danger)">28.9%</div>
+      <div class="gauge-target">Target: 60% &nbsp;·&nbsp; Gap: 31.1%</div>
+      <div style="margin-top:10px">
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:28.9%;background:var(--danger)"></div></div>
+      </div>
+    </div>
+    <div class="gauge-card">
+      <div class="gauge-label">Youth Participation Rate</div>
+      <div class="gauge-val" style="color:var(--amber)">39.9%</div>
+      <div class="gauge-target">Target: 50% &nbsp;·&nbsp; Gap: 10.1%</div>
+      <div style="margin-top:10px">
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:39.9%;background:var(--amber)"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-grid cols-2">
+    <div class="chart-card">
+      <div class="chart-title">PHL Rate by Technology Used</div>
+      <div class="chart-desc">Hermetic bags outperform all other tech — no-tech farmers highest risk</div>
+      <div class="chart-wrap"><canvas id="techPHL" height="240"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Revenue Loss by Technology Used</div>
+      <div class="chart-desc">Mobile app users protect the most revenue (₦7,940 avg loss)</div>
+      <div class="chart-wrap"><canvas id="techRevLoss" height="240"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-grid cols-2">
+    <div class="chart-card">
+      <div class="chart-title">Training Impact on PHL & Revenue Loss</div>
+      <div class="chart-desc">Trained vs untrained farmer performance comparison</div>
+      <div class="chart-wrap"><canvas id="trainingChart" height="240"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Youth Involvement Impact</div>
+      <div class="chart-desc">Youth-involved vs non-youth operations — PHL and revenue loss</div>
+      <div class="chart-wrap"><canvas id="youthChart" height="240"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 5: RECOMMENDATIONS ═══════════ -->
+<div class="page" id="page-recommendations">
+
+  <div class="insight-box">
+    <div class="insight-icon">🎯</div>
+    <div>
+      <div class="insight-title">Strategic Roadmap Summary</div>
+      <div class="insight-text">Eight evidence-based interventions are recommended, sequenced by impact potential and urgency. If the top four interventions are executed within 12 months, a projected <strong style="color:var(--gold)">4–6 percentage point PHL reduction</strong> is achievable — recovering hundreds of thousands of kg of produce and potentially <strong style="color:var(--gold)">₦8–12 million NGN</strong> in protected farmer revenue annually.</div>
+    </div>
+  </div>
+
+  <div class="section-heading">
+    <h2>Simplified Key Insights</h2>
+    <div class="section-line"></div>
+    <div class="section-badge">Plain Language</div>
+  </div>
+
+  <div class="chart-card" style="margin-bottom:24px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div>
+        <div style="font-weight:700;color:var(--forest);font-size:14px;margin-bottom:12px">📊 What the data tells us</div>
+        <div class="progress-item">
+          <div class="progress-label"><span>🔴 Almost 1-in-5 kg of food is lost</span><span>19.25%</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:19.25%;background:var(--danger)"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>🟡 Only 4-in-10 farmers use tech</span><span>39.7%</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:39.7%;background:var(--warn)"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>🔴 Only 3-in-10 farmers trained</span><span>28.9%</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:28.9%;background:var(--danger)"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>✅ Trucks reduce loss the most</span><span>18.82%</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:18.82%;background:var(--safe)"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>✅ Hermetic bags best technology</span><span>18.76%</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:18.76%;background:var(--safe)"></div></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-weight:700;color:var(--forest);font-size:14px;margin-bottom:12px">💡 In plain English</div>
+        <div style="font-size:13px;color:var(--ash);line-height:1.8">
+          <div style="margin-bottom:8px">🌡️ <strong>It's too hot and humid.</strong> Farms are storing produce at 30°C+ when it should be below 25°C. That heat is rotting the food faster than farmers can sell it.</div>
+          <div style="margin-bottom:8px">📦 <strong>Cold storage isn't working.</strong> Surprisingly, cold storage has the worst spoilage rate — meaning the equipment exists but isn't maintained or used properly.</div>
+          <div style="margin-bottom:8px">🛵 <strong>Motorbikes are a problem.</strong> Moving produce by motorcycle is the most expensive mistake — slow, exposed to heat, and causes the most financial loss.</div>
+          <div style="margin-bottom:8px">🌶️ <strong>Pepper is costing the most.</strong> ₦12.9M lost — because it's both expensive and highly perishable without proper cold chain.</div>
+          <div>🧑‍🌾 <strong>Youth farmers need more support.</strong> They're trying to farm but lack tools, training, and market connections — not ability.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-heading">
+    <h2>Strategic Recommendations</h2>
+    <div class="section-line"></div>
+    <div class="section-badge">8 Interventions</div>
+  </div>
+
+  <div class="rec-grid">
+    <div class="rec-card urgent">
+      <div class="rec-num">01</div>
+      <div class="rec-tier tier-urgent">🔴 URGENT — 0–3 Months</div>
+      <div class="rec-title">Scale Hermetic Bag Distribution</div>
+      <div class="rec-body">Subsidize hermetic bags across North East, South West, and North West zones. These create airtight, oxygen-depleted environments that stop insects and slow decay. The single most effective technology in the dataset.</div>
+      <div class="rec-impact"><strong>Expected Impact:</strong> PHL reduction to ~18.76% for adopters &nbsp;·&nbsp; ~3,017 farmers without tech</div>
+    </div>
+    <div class="rec-card urgent">
+      <div class="rec-num">02</div>
+      <div class="rec-tier tier-urgent">🔴 URGENT — 0–3 Months</div>
+      <div class="rec-title">Emergency Training Scale-Up</div>
+      <div class="rec-body">Deploy structured, outcome-linked post-harvest training in the 3 highest-PHL zones. Bundle training with equipment so farmers don't receive "knowledge without tools." Target: 60%+ farmer coverage within 90 days.</div>
+      <div class="rec-impact"><strong>Expected Impact:</strong> Training coverage 28.9% → 60% &nbsp;·&nbsp; Behaviour change within 1 season</div>
+    </div>
+    <div class="rec-card high">
+      <div class="rec-num">03</div>
+      <div class="rec-tier tier-high">🟠 HIGH — 3–6 Months</div>
+      <div class="rec-title">Cold Storage Infrastructure Audit</div>
+      <div class="rec-body">Cold Storage has the worst PHL despite being the most expensive method. A systematic audit of all cold storage facilities should assess power reliability, thermostat accuracy, and load management. Fix before further investment.</div>
+      <div class="rec-impact"><strong>Expected Impact:</strong> Could recover Cold Storage from worst (19.39%) to best-in-class (&lt;17%)</div>
+    </div>
+    <div class="rec-card high">
+      <div class="rec-num">04</div>
+      <div class="rec-tier tier-high">🟠 HIGH — 3–12 Months</div>
+      <div class="rec-title">Motorcycle → Truck Transport Cooperative</div>
+      <div class="rec-body">Create community-level produce aggregation hubs every 10–15 km so farmers pool produce for truck collection. Motorcycle transport causes the highest revenue loss (₦8,711 avg). Cooperative trucking reduces cost and spoilage simultaneously.</div>
+      <div class="rec-impact"><strong>Expected Impact:</strong> PHL reduction from 19.39% → 18.82% &nbsp;·&nbsp; ₦794 avg revenue recovery per farmer</div>
+    </div>
+    <div class="rec-card medium">
+      <div class="rec-num">05</div>
+      <div class="rec-tier tier-medium">🟡 MEDIUM — 6–12 Months</div>
+      <div class="rec-title">Mobile Agricultural Platform Deployment</div>
+      <div class="rec-body">Mobile App users achieve the lowest revenue loss (₦7,940 avg). Deploy a curated platform with market price feeds, weather alerts, logistics booking, and post-harvest advisory. Subsidize rural data access to maximise adoption.</div>
+      <div class="rec-impact"><strong>Expected Impact:</strong> Highest scalability — near-zero marginal cost per additional farmer</div>
+    </div>
+    <div class="rec-card medium">
+      <div class="rec-num">06</div>
+      <div class="rec-tier tier-medium">🟡 MEDIUM — 6–12 Months</div>
+      <div class="rec-title">Solar Dryer Expansion for Perishables</div>
+      <div class="rec-body">Solar Dryer users show 19.11% PHL — better than the average. Expanding access for Tomato, Pepper, and Cassava farmers enables value-added drying, longer shelf life, and higher market prices. Especially critical in Dry Season operations.</div>
+      <div class="rec-impact"><strong>Expected Impact:</strong> Addresses both spoilage & value creation for high-loss crops</div>
+    </div>
+    <div class="rec-card long">
+      <div class="rec-num">07</div>
+      <div class="rec-tier tier-long">🟢 LONG-TERM — 12–24 Months</div>
+      <div class="rec-title">Youth Agricultural Enterprise Programme</div>
+      <div class="rec-body">Youth-involved farms underperform due to structural constraints, not lack of skill. Create a dedicated support ecosystem: subsidized equipment, certified training, market guarantees, cooperative buying groups, and crop insurance for the 39.9% youth-involved operations.</div>
+      <div class="rec-impact"><strong>Expected Impact:</strong> Transforms largest at-risk group into future productivity engine</div>
+    </div>
+    <div class="rec-card long">
+      <div class="rec-num">08</div>
+      <div class="rec-tier tier-long">🟢 LONG-TERM — 24–36 Months</div>
+      <div class="rec-title">Regional Post-Harvest Intelligence Centres</div>
+      <div class="rec-body">Establish permanent intelligence centres in North East, South West, and North West — the three highest-risk zones. These serve as hubs for training delivery, tech distribution, cold chain oversight, logistics coordination, and real-time data collection.</div>
+      <div class="rec-impact"><strong>Expected Impact:</strong> Institutional capacity for sustained, data-driven agricultural improvement</div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Projected Impact of Interventions</div>
+    <div class="chart-desc">Estimated PHL reduction per intervention if deployed at recommended scale</div>
+    <div class="chart-wrap"><canvas id="impactChart" height="220"></canvas></div>
+  </div>
+</div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  Nigeria Post-Harvest Agricultural Intelligence Dashboard &nbsp;·&nbsp; 
+  <strong>by IROAGBA VALENTINE CHIBUEZE</strong> &nbsp;·&nbsp; 
+  Dataset: 5,000 Farmers · 6 Geopolitical Zones · 2023–2024 &nbsp;·&nbsp; 
+  Operational Analytics Division
+</footer>
+
+<script>
+const DATA = {"kpis": {"total_harvest": 1004961.0, "total_spoilage": 193071.0, "avg_phl": 19.25, "total_rev_loss": 41415461, "avg_rev_loss": 8283.0, "tech_adoption": 39.7, "training_rate": 28.9, "youth_rate": 39.9, "total_farmers": 5000}, "regional": [{"Region": "North Central", "records": 870, "avg_phl": 18.83, "total_rev_loss": 7003678, "total_spoilage": 32911.8, "total_harvest": 176087.0}, {"Region": "North East", "records": 803, "avg_phl": 19.57, "total_rev_loss": 7009934, "total_spoilage": 31756.9, "total_harvest": 162605.6}, {"Region": "North West", "records": 812, "avg_phl": 19.36, "total_rev_loss": 6768513, "total_spoilage": 31500.4, "total_harvest": 163037.0}, {"Region": "South East", "records": 842, "avg_phl": 19.22, "total_rev_loss": 6641139, "total_spoilage": 32002.1, "total_harvest": 166896.3}, {"Region": "South South", "records": 852, "avg_phl": 19.17, "total_rev_loss": 6920091, "total_spoilage": 32870.2, "total_harvest": 171487.5}, {"Region": "South West", "records": 821, "avg_phl": 19.39, "total_rev_loss": 7072106, "total_spoilage": 32029.5, "total_harvest": 164847.4}], "crop": [{"Crop_Type": "Cassava", "avg_phl": 19.35, "total_rev_loss": 2426559, "total_spoilage": 32763.0}, {"Crop_Type": "Maize", "avg_phl": 19.09, "total_rev_loss": 3940023, "total_spoilage": 34272.9}, {"Crop_Type": "Pepper", "avg_phl": 19.28, "total_rev_loss": 12918911, "total_spoilage": 32225.8}, {"Crop_Type": "Rice", "avg_phl": 19.58, "total_rev_loss": 8444146, "total_spoilage": 30728.7}, {"Crop_Type": "Tomato", "avg_phl": 19.13, "total_rev_loss": 9037358, "total_spoilage": 30054.2}, {"Crop_Type": "Yam", "avg_phl": 19.08, "total_rev_loss": 4648464, "total_spoilage": 33026.3}], "storage": [{"Storage_Method": "Cold Storage", "count": 1258, "avg_phl": 19.39, "avg_rev_loss": 8424.350556438792}, {"Storage_Method": "Crates", "count": 1273, "avg_phl": 19.0, "avg_rev_loss": 8301.778476040849}, {"Storage_Method": "Open shed", "count": 1230, "avg_phl": 19.36, "avg_rev_loss": 8050.494308943089}, {"Storage_Method": "Polyethylene bags", "count": 1239, "avg_phl": 19.27, "avg_rev_loss": 8351.376916868443}], "transport": [{"Transport_Type": "Bicycle", "avg_phl": 19.45, "avg_rev_loss": 8253.576740506329, "avg_dist": 19.705617088607596}, {"Transport_Type": "Boat", "avg_phl": 19.34, "avg_rev_loss": 8264.351968503937, "avg_dist": 19.909291338582676}, {"Transport_Type": "Motorcycle", "avg_phl": 19.39, "avg_rev_loss": 8710.854200988468, "avg_dist": 20.654283360790775}, {"Transport_Type": "Truck", "avg_phl": 18.82, "avg_rev_loss": 7917.121405750799, "avg_dist": 19.44049520766773}], "tech": [{"Tech_Used": "Hermetic Bags", "count": 485, "avg_phl": 18.76, "avg_rev_loss": 8487.109278350516}, {"Tech_Used": "Mobile App", "count": 732, "avg_phl": 19.18, "avg_rev_loss": 7939.617486338798}, {"Tech_Used": "None", "count": 3017, "avg_phl": 19.38, "avg_rev_loss": 8383.99834272456}, {"Tech_Used": "Solar Dryer", "count": 766, "avg_phl": 19.11, "avg_rev_loss": 8084.712793733682}], "training": [{"Training_Received": "Untrained", "count": 3554, "avg_phl": 19.23, "avg_rev_loss": 8278.982554867755}, {"Training_Received": "Trained", "count": 1446, "avg_phl": 19.3, "avg_rev_loss": 8293.19294605809}], "youth": [{"Youth_Involved": "No Youth", "count": 3007, "avg_phl": 19.21, "avg_rev_loss": 8255.4469571001}, {"Youth_Involved": "Youth Involved", "count": 1993, "avg_phl": 19.32, "avg_rev_loss": 8324.80280983442}], "season": [{"Harvest_Season": "Dry Season", "avg_phl": 19.3, "avg_rev_loss": 8170.829929300864, "total_spoilage": 97644.2}, {"Harvest_Season": "Rainy Season", "avg_phl": 19.2, "avg_rev_loss": 8399.56316218419, "total_spoilage": 95426.7}], "market": [{"Market_Access": "Good", "avg_phl": 19.23, "avg_rev_loss": 8240.676821192053, "count": 1510}, {"Market_Access": "Moderate", "avg_phl": 19.37, "avg_rev_loss": 8387.477419354838, "count": 2480}, {"Market_Access": "Poor", "avg_phl": 19.0, "avg_rev_loss": 8090.193069306931, "count": 1010}], "env": [{"Spoilage_Q": "Low", "Temperature_C": 29.05, "Humidity_Percent": 57.67, "Storage_Duration_Days": 9.05}, {"Spoilage_Q": "Q2", "Temperature_C": 29.67, "Humidity_Percent": 58.85, "Storage_Duration_Days": 9.62}, {"Spoilage_Q": "Q3", "Temperature_C": 30.13, "Humidity_Percent": 60.23, "Storage_Duration_Days": 10.41}, {"Spoilage_Q": "High", "Temperature_C": 30.98, "Humidity_Percent": 64.19, "Storage_Duration_Days": 10.97}], "region_crop": [{"Region": "North Central", "Crop_Type": "Cassava", "PHL_Percent": 19.02}, {"Region": "North Central", "Crop_Type": "Maize", "PHL_Percent": 18.81}, {"Region": "North Central", "Crop_Type": "Pepper", "PHL_Percent": 18.83}, {"Region": "North Central", "Crop_Type": "Rice", "PHL_Percent": 19.2}, {"Region": "North Central", "Crop_Type": "Tomato", "PHL_Percent": 18.61}, {"Region": "North Central", "Crop_Type": "Yam", "PHL_Percent": 18.5}, {"Region": "North East", "Crop_Type": "Cassava", "PHL_Percent": 19.28}, {"Region": "North East", "Crop_Type": "Maize", "PHL_Percent": 19.14}, {"Region": "North East", "Crop_Type": "Pepper", "PHL_Percent": 19.95}, {"Region": "North East", "Crop_Type": "Rice", "PHL_Percent": 19.55}, {"Region": "North East", "Crop_Type": "Tomato", "PHL_Percent": 19.84}, {"Region": "North East", "Crop_Type": "Yam", "PHL_Percent": 19.65}, {"Region": "North West", "Crop_Type": "Cassava", "PHL_Percent": 19.59}, {"Region": "North West", "Crop_Type": "Maize", "PHL_Percent": 19.19}, {"Region": "North West", "Crop_Type": "Pepper", "PHL_Percent": 18.89}, {"Region": "North West", "Crop_Type": "Rice", "PHL_Percent": 19.68}, {"Region": "North West", "Crop_Type": "Tomato", "PHL_Percent": 19.45}, {"Region": "North West", "Crop_Type": "Yam", "PHL_Percent": 19.39}, {"Region": "South East", "Crop_Type": "Cassava", "PHL_Percent": 18.98}, {"Region": "South East", "Crop_Type": "Maize", "PHL_Percent": 19.15}, {"Region": "South East", "Crop_Type": "Pepper", "PHL_Percent": 18.27}, {"Region": "South East", "Crop_Type": "Rice", "PHL_Percent": 19.6}, {"Region": "South East", "Crop_Type": "Tomato", "PHL_Percent": 18.59}, {"Region": "South East", "Crop_Type": "Yam", "PHL_Percent": 20.38}, {"Region": "South South", "Crop_Type": "Cassava", "PHL_Percent": 20.01}, {"Region": "South South", "Crop_Type": "Maize", "PHL_Percent": 19.29}, {"Region": "South South", "Crop_Type": "Pepper", "PHL_Percent": 19.76}, {"Region": "South South", "Crop_Type": "Rice", "PHL_Percent": 19.35}, {"Region": "South South", "Crop_Type": "Tomato", "PHL_Percent": 18.78}, {"Region": "South South", "Crop_Type": "Yam", "PHL_Percent": 17.91}, {"Region": "South West", "Crop_Type": "Cassava", "PHL_Percent": 19.27}, {"Region": "South West", "Crop_Type": "Maize", "PHL_Percent": 18.98}, {"Region": "South West", "Crop_Type": "Pepper", "PHL_Percent": 19.78}, {"Region": "South West", "Crop_Type": "Rice", "PHL_Percent": 20.16}, {"Region": "South West", "Crop_Type": "Tomato", "PHL_Percent": 19.54}, {"Region": "South West", "Crop_Type": "Yam", "PHL_Percent": 18.58}]};
+
+// ── NAVIGATION ──
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── COLOR PALETTES ──
+const GREENS  = ['#1B4332','#2D6A4F','#40916C','#52B788','#74C69D','#95D5B2','#B7E4C7'];
+const MIXED   = ['#1B4332','#BC6C25','#DDA15E','#E9C46A','#74C69D','#40916C','#8B2500'];
+const DANGER  = '#C1121F';
+const WARN    = '#E07B39';
+const SAFE    = '#40916C';
+const GOLD    = '#E9C46A';
+const FOREST  = '#1B4332';
+const CREAM   = '#F8F5EF';
+
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.color = '#4A4A4A';
+
+function fmt(n) { return n.toLocaleString(); }
+
+// ── P1: Regional PHL ──
+new Chart(document.getElementById('regionalPHL'), {
+  type: 'bar',
+  data: {
+    labels: DATA.regional.map(d => d.Region),
+    datasets: [{
+      label: 'Avg PHL %',
+      data: DATA.regional.map(d => d.avg_phl),
+      backgroundColor: DATA.regional.map(d =>
+        d.avg_phl >= 19.5 ? DANGER : d.avg_phl >= 19.3 ? WARN : SAFE
+      ),
+      borderRadius: 8,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false }, tooltip: { callbacks: {
+      label: ctx => `PHL: ${ctx.raw}%`
+    }}},
+    scales: {
+      y: { min: 18, max: 20, grid: { color: '#EEE' }, ticks: { callback: v => v+'%' } },
+      x: { grid: { display: false } }
+    },
+    animation: { duration: 1000 }
+  }
+});
+
+// ── P1: Crop Revenue Loss (Donut) ──
+new Chart(document.getElementById('cropRevLoss'), {
+  type: 'doughnut',
+  data: {
+    labels: DATA.crop.map(d => d.Crop_Type),
+    datasets: [{
+      data: DATA.crop.map(d => d.total_rev_loss),
+      backgroundColor: ['#1B4332','#BC6C25','#C1121F','#DDA15E','#E9C46A','#74C69D'],
+      borderWidth: 3,
+      borderColor: '#F8F5EF',
+      hoverOffset: 12,
+    }]
+  },
+  options: {
+    plugins: {
+      legend: { position: 'right', labels: { font: { size: 12 }, padding: 12 } },
+      tooltip: { callbacks: { label: ctx => ` ₦${(ctx.raw/1000000).toFixed(2)}M` }}
+    },
+    animation: { animateRotate: true, duration: 1200 }
+  }
+});
+
+// ── P1: Harvest vs Spoilage ──
+new Chart(document.getElementById('harvestSpoilage'), {
+  type: 'bar',
+  data: {
+    labels: DATA.regional.map(d => d.Region),
+    datasets: [
+      { label: 'Harvest (kg)', data: DATA.regional.map(d => d.total_harvest), backgroundColor: '#74C69D', borderRadius: 6 },
+      { label: 'Spoilage (kg)', data: DATA.regional.map(d => d.total_spoilage), backgroundColor: '#C1121F', borderRadius: 6 }
+    ]
+  },
+  options: {
+    plugins: { legend: { labels: { font: { size: 12 } } } },
+    scales: {
+      y: { grid: { color: '#EEE' }, ticks: { callback: v => (v/1000).toFixed(0)+'K' } },
+      x: { grid: { display: false } }
+    },
+    animation: { duration: 1000 }
+  }
+});
+
+// ── P1: Crop PHL Ranking ──
+const sortedCrop = [...DATA.crop].sort((a,b) => b.avg_phl - a.avg_phl);
+new Chart(document.getElementById('cropPHL'), {
+  type: 'bar',
+  data: {
+    labels: sortedCrop.map(d => d.Crop_Type),
+    datasets: [{
+      label: 'Avg PHL %',
+      data: sortedCrop.map(d => d.avg_phl),
+      backgroundColor: ['#C1121F','#E07B39','#E9C46A','#74C69D','#52B788','#40916C'],
+      borderRadius: 8,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { min: 18.8, max: 19.8, ticks: { callback: v => v+'%' }, grid: { color: '#EEE' } },
+      y: { grid: { display: false } }
+    },
+    animation: { duration: 1000 }
+  }
+});
+
+// ── P2: Temperature vs Spoilage ──
+new Chart(document.getElementById('tempSpoilage'), {
+  type: 'bar',
+  data: {
+    labels: DATA.env.map(d => d.Spoilage_Q + ' Spoilage'),
+    datasets: [{
+      label: 'Avg Temp (°C)',
+      data: DATA.env.map(d => d.Temperature_C),
+      backgroundColor: ['#74C69D','#E9C46A','#E07B39','#C1121F'],
+      borderRadius: 8,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.raw}°C` }} },
+    scales: {
+      y: { min: 28, max: 32, ticks: { callback: v => v+'°C' }, grid: { color: '#EEE' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── P2: Humidity vs Spoilage ──
+new Chart(document.getElementById('humidSpoilage'), {
+  type: 'bar',
+  data: {
+    labels: DATA.env.map(d => d.Spoilage_Q + ' Spoilage'),
+    datasets: [{
+      label: 'Avg Humidity %',
+      data: DATA.env.map(d => d.Humidity_Percent),
+      backgroundColor: ['#95D5B2','#DDA15E','#BC6C25','#8B2500'],
+      borderRadius: 8,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.raw}%` }} },
+    scales: {
+      y: { min: 54, max: 67, ticks: { callback: v => v+'%' }, grid: { color: '#EEE' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── P2: Heatmap ──
+const regions = [...new Set(DATA.region_crop.map(d => d.Region))];
+const crops   = [...new Set(DATA.region_crop.map(d => d.Crop_Type))];
+const phlMap = {};
+DATA.region_crop.forEach(d => { phlMap[d.Region+'|'+d.Crop_Type] = d.PHL_Percent; });
+const allVals = DATA.region_crop.map(d => d.PHL_Percent);
+const minV = Math.min(...allVals), maxV = Math.max(...allVals);
+function heatColor(v) {
+  const t = (v - minV) / (maxV - minV);
+  const r = Math.round(27 + (193 - 27) * t);
+  const g = Math.round(67 + (18 - 67) * t);
+  const b = Math.round(50 + (31 - 50) * t);
+  return `rgb(${r},${g},${b})`;
+}
+function textColor(v) { return (v - minV) / (maxV - minV) > 0.5 ? '#FFFFFF' : '#1B4332'; }
+let hmHtml = '<table class="heatmap-table"><thead><tr><th>Region</th>';
+crops.forEach(c => hmHtml += `<th>${c}</th>`);
+hmHtml += '</tr></thead><tbody>';
+regions.forEach(r => {
+  hmHtml += `<tr><td class="hm-row-label">${r}</td>`;
+  crops.forEach(c => {
+    const v = phlMap[r+'|'+c] || 0;
+    hmHtml += `<td style="background:${heatColor(v)};color:${textColor(v)}">${v.toFixed(2)}%</td>`;
+  });
+  hmHtml += '</tr>';
+});
+hmHtml += '</tbody></table>';
+document.getElementById('heatmapContainer').innerHTML = hmHtml;
+
+// ── P2: Season ──
+new Chart(document.getElementById('seasonChart'), {
+  type: 'bar',
+  data: {
+    labels: DATA.season.map(d => d.Harvest_Season),
+    datasets: [
+      { label: 'Avg PHL %', data: DATA.season.map(d => d.avg_phl), backgroundColor: ['#40916C','#DDA15E'], borderRadius: 8, borderSkipped: false, yAxisID: 'y' },
+      { label: 'Avg Rev Loss (₦)', data: DATA.season.map(d => d.avg_rev_loss), backgroundColor: ['#1B4332','#BC6C25'], borderRadius: 8, borderSkipped: false, yAxisID: 'y2', type: 'bar' }
+    ]
+  },
+  options: {
+    plugins: { legend: { labels: { font: { size: 11 } } } },
+    scales: {
+      y:  { position: 'left',  ticks: { callback: v => v+'%' }, min: 19.0, max: 19.5 },
+      y2: { position: 'right', ticks: { callback: v => '₦'+v.toLocaleString() }, grid: { display: false } },
+      x:  { grid: { display: false } }
+    }
+  }
+});
+
+// ── P2: Storage Duration ──
+new Chart(document.getElementById('storageDuration'), {
+  type: 'bar',
+  data: {
+    labels: DATA.env.map(d => d.Spoilage_Q + ' Spoilage'),
+    datasets: [{
+      label: 'Avg Storage Days',
+      data: DATA.env.map(d => d.Storage_Duration_Days),
+      backgroundColor: ['#74C69D','#DDA15E','#E07B39','#C1121F'],
+      borderRadius: 8, borderSkipped: false,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.raw} days` }} },
+    scales: {
+      y: { min: 8, max: 12, ticks: { callback: v => v+' days' }, grid: { color: '#EEE' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── P3: Transport PHL ──
+new Chart(document.getElementById('transportPHL'), {
+  type: 'bar',
+  data: {
+    labels: DATA.transport.map(d => d.Transport_Type),
+    datasets: [{
+      label: 'Avg PHL %',
+      data: DATA.transport.map(d => d.avg_phl),
+      backgroundColor: DATA.transport.map(d =>
+        d.avg_phl < 19.0 ? SAFE : d.avg_phl < 19.35 ? WARN : DANGER
+      ),
+      borderRadius: 8, borderSkipped: false,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `PHL: ${ctx.raw}%` }} },
+    scales: {
+      y: { min: 18.5, max: 19.7, ticks: { callback: v => v+'%' }, grid: { color: '#EEE' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── P3: Transport Revenue Loss ──
+new Chart(document.getElementById('transportRevLoss'), {
+  type: 'bar',
+  data: {
+    labels: DATA.transport.map(d => d.Transport_Type),
+    datasets: [{
+      label: 'Avg Revenue Loss (₦)',
+      data: DATA.transport.map(d => d.avg_rev_loss),
+      backgroundColor: ['#40916C','#52B788','#E07B39','#C1121F'],
+      borderRadius: 8, borderSkipped: false,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `₦${ctx.raw.toLocaleString()}` }} },
+    scales: {
+      y: { min: 7500, max: 9000, ticks: { callback: v => '₦'+v.toLocaleString() }, grid: { color: '#EEE' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── P3: Storage PHL ──
+const storageSorted = [...DATA.storage].sort((a,b) => a.avg_phl - b.avg_phl);
+new Chart(document.getElementById('storagePHL'), {
+  type: 'bar',
+  data: {
+    labels: storageSorted.map(d => d.Storage_Method),
+    datasets: [{
+      label: 'Avg PHL %',
+      data: storageSorted.map(d => d.avg_phl),
+      backgroundColor: ['#40916C','#74C69D','#E07B39','#C1121F'],
+      borderRadius: 8, borderSkipped: false,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { min: 18.7, max: 19.6, ticks: { callback: v => v+'%' }, grid: { color: '#EEE' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── P3: Market PHL ──
+new Chart(document.getElementById('marketPHL'), {
+  type: 'bar',
+  data: {
+    labels: DATA.market.map(d => d.Market_Access),
+    datasets: [{
+      label: 'Avg PHL %',
+      data: DATA.market.map(d => d.avg_phl),
+      backgroundColor: ['#40916C','#E07B39','#C1121F'],
+      borderRadius: 8, borderSkipped: false,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { min: 18.8, max: 19.6, ticks: { callback: v => v+'%' }, grid: { color: '#EEE' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── P3: Logistics Table ──
+const perfMap = { Truck: 'badge-green', Boat: 'badge-amber', Motorcycle: 'badge-red', Bicycle: 'badge-red' };
+const perfLabel = { Truck: 'BEST', Boat: 'MODERATE', Motorcycle: 'RISK', Bicycle: 'HIGH RISK' };
+const tbody = document.getElementById('logisticsTableBody');
+DATA.transport.forEach(d => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><strong>${d.Transport_Type}</strong></td>
+    <td>${d.avg_phl}%</td>
+    <td>₦${d.avg_rev_loss.toLocaleString()}</td>
+    <td>${d.avg_dist.toFixed(1)} km</td>
+    <td><span class="badge ${perfMap[d.Transport_Type]}">${perfLabel[d.Transport_Type]}</span></td>
+  `;
+  tbody.appendChild(tr);
+});
+
+// ── P4: Tech PHL ──
+const techSorted = [...DATA.tech].sort((a,b) => a.avg_phl - b.avg_phl);
+new Chart(document.getElementById('techPHL'), {
+  type: 'bar',
+  data: {
+    labels: techSorted.map(d => d.Tech_Used),
+    datasets: [{
+      label: 'Avg PHL %',
+      data: techSorted.map(d => d.avg_phl),
+      backgroundColor: ['#1B4332','#40916C','#74C69D','#C1121F'],
+      borderRadius: 8, borderSkipped: false,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `PHL: ${ctx.raw}%` }} },
+    scales: {
+      y: { min: 18.5, max: 19.6, ticks: { callback: v => v+'%' }, grid: { color: '#EEE' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── P4: Tech Revenue Loss ──
+const techSorted2 = [...DATA.tech].sort((a,b) => a.avg_rev_loss - b.avg_rev_loss);
+new Chart(document.getElementById('techRevLoss'), {
+  type: 'bar',
+  data: {
+    labels: techSorted2.map(d => d.Tech_Used),
+    datasets: [{
+      label: 'Avg Revenue Loss (₦)',
+      data: techSorted2.map(d => d.avg_rev_loss),
+      backgroundColor: ['#1B4332','#40916C','#DDA15E','#C1121F'],
+      borderRadius: 8, borderSkipped: false,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `₦${ctx.raw.toFixed(0).toLocaleString()}` }} },
+    scales: {
+      y: { min: 7500, max: 8700, ticks: { callback: v => '₦'+v.toLocaleString() }, grid: { color: '#EEE' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── P4: Training ──
+new Chart(document.getElementById('trainingChart'), {
+  type: 'bar',
+  data: {
+    labels: DATA.training.map(d => d.Training_Received),
+    datasets: [
+      { label: 'Avg PHL %', data: DATA.training.map(d => d.avg_phl), backgroundColor: ['#1B4332','#BC6C25'], borderRadius: 8, borderSkipped: false, yAxisID: 'y' },
+      { label: 'Avg Rev Loss (₦)', data: DATA.training.map(d => d.avg_rev_loss), backgroundColor: ['#40916C','#E07B39'], borderRadius: 8, borderSkipped: false, yAxisID: 'y2', type: 'bar' }
+    ]
+  },
+  options: {
+    plugins: { legend: { labels: { font: { size: 11 } } } },
+    scales: {
+      y:  { position: 'left', ticks: { callback: v => v+'%' }, min: 19.1, max: 19.4 },
+      y2: { position: 'right', ticks: { callback: v => '₦'+v.toLocaleString() }, grid: { display: false }, min: 8100, max: 8400 },
+      x:  { grid: { display: false } }
+    }
+  }
+});
+
+// ── P4: Youth ──
+new Chart(document.getElementById('youthChart'), {
+  type: 'bar',
+  data: {
+    labels: DATA.youth.map(d => d.Youth_Involved),
+    datasets: [
+      { label: 'Avg PHL %', data: DATA.youth.map(d => d.avg_phl), backgroundColor: ['#1B4332','#52B788'], borderRadius: 8, borderSkipped: false, yAxisID: 'y' },
+      { label: 'Avg Rev Loss (₦)', data: DATA.youth.map(d => d.avg_rev_loss), backgroundColor: ['#2D6A4F','#DDA15E'], borderRadius: 8, borderSkipped: false, yAxisID: 'y2' }
+    ]
+  },
+  options: {
+    plugins: { legend: { labels: { font: { size: 11 } } } },
+    scales: {
+      y:  { position: 'left', ticks: { callback: v => v+'%' }, min: 19.0, max: 19.5 },
+      y2: { position: 'right', ticks: { callback: v => '₦'+v.toLocaleString() }, grid: { display: false }, min: 8000, max: 8500 },
+      x:  { grid: { display: false } }
+    }
+  }
+});
+
+// ── P5: Impact Chart ──
+new Chart(document.getElementById('impactChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Hermetic Bags', 'Truck Transport', 'Solar Dryer', 'Mobile App', 'Training Scale-Up'],
+    datasets: [{
+      label: 'Estimated PHL Reduction (pp)',
+      data: [0.62, 0.57, 0.27, 0.20, 0.10],
+      backgroundColor: ['#1B4332','#2D6A4F','#40916C','#74C69D','#95D5B2'],
+      borderRadius: 8, borderSkipped: false,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `-${ctx.raw} pp PHL reduction` }} },
+    scales: {
+      x: { ticks: { callback: v => '-'+v+' pp' }, grid: { color: '#EEE' } },
+      y: { grid: { display: false } }
+    }
+  }
+});
+</script>
+</body>
+</html>
