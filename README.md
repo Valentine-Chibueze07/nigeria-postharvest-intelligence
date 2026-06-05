@@ -135,12 +135,6 @@ About the Author
 Iroagba Valentine Chibueze is an aspiring data analyst with a Petroleum Engineering background. His work sits at the intersection of operational intelligence, systems thinking, and data-driven problem-solving — with a particular focus on how analytical frameworks can address real-world operational challenges in Nigerian and African economic contexts.
 Skills: SQL Server · Power BI · Excel Analytics · Python (pandas, data processing) · Business Intelligence · Operational Analytics
 
-Connect
-
-LinkedIn: [Your LinkedIn URL]
-Portfolio: [Your Portfolio URL]
-GitHub: [Your GitHub URL]
-
 
 This project is part of an ongoing analytics portfolio documenting operational intelligence work across Nigerian economic and industrial contexts.
 Dataset contains anonymised operational records. No personally identifiable information is included.
